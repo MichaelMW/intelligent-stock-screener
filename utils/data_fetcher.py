@@ -128,9 +128,10 @@ class DataFetcher:
             print(f"Error fetching fundamentals for {symbol}: {e}")
             return None
     
-    def fetch_batch_data(self, symbols: List[str], period: str = "1y") -> Dict[str, Dict]:
+    def fetch_batch_data(self, symbols: List[str], period: str = "1y", save_incrementally: bool = False) -> Dict[str, Dict]:
         """Fetch both price and fundamental data for multiple symbols"""
         results = {}
+        batch_save_interval = 50  # Save every 50 symbols in batch mode
         
         for i, symbol in enumerate(symbols):
             print(f"Fetching data for {symbol} ({i+1}/{len(symbols)})")
@@ -191,6 +192,27 @@ class DataFetcher:
                     'fundamentals': fundamental_data,
                     'price_data': price_data
                 }
+                
+                # Save incrementally if enabled
+                if save_incrementally:
+                    try:
+                        single_symbol_data = {symbol: results[symbol]}
+                        self.save_data(single_symbol_data, 'stock_data.json', sync=True)
+                        print(f"✓ Saved data for {symbol} incrementally")
+                    except Exception as e:
+                        print(f"⚠ Warning: Failed to save {symbol} incrementally: {e}")
+                        print("  Continuing with next symbol, data will be saved in batch at the end")
+                else:
+                    # In batch mode, save periodically every 50 symbols
+                    if (i + 1) % batch_save_interval == 0:
+                        try:
+                            self.save_data(results, 'stock_data.json', sync=True)
+                            print(f"📦 Batch checkpoint: Saved {len(results)} symbols after {i+1} fetches")
+                        except Exception as e:
+                            print(f"⚠ Warning: Failed to save batch checkpoint: {e}")
+                            print("  Continuing with fetching, data will be saved at the end")
+            else:
+                print(f"⚠ Failed to fetch complete data for {symbol}, skipping")
         
         return results
     
@@ -303,7 +325,12 @@ class DataFetcher:
                     for col in df.columns:
                         price_data_dict[col] = {}
                         for idx, val in df[col].items():
-                            price_data_dict[col][idx.strftime('%Y-%m-%d')] = float(val) if pd.notna(val) else None
+                            # Handle both datetime objects and string dates
+                            if hasattr(idx, 'strftime'):
+                                date_str = idx.strftime('%Y-%m-%d')
+                            else:
+                                date_str = str(idx)  # Already a string
+                            price_data_dict[col][date_str] = float(val) if pd.notna(val) else None
                 
                 serializable_data[symbol] = {
                     'fundamentals': symbol_data['fundamentals'],
@@ -318,13 +345,27 @@ class DataFetcher:
         if not os.path.exists(filepath):
             return None
         
-        with open(filepath, 'r') as f:
-            data = json.load(f)
+        try:
+            with open(filepath, 'r') as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"Warning: Corrupted JSON file {filepath}: {e}")
+            print("Treating as empty file - existing data will be preserved if available")
+            return None
+        except Exception as e:
+            print(f"Error loading data from {filepath}: {e}")
+            return None
         
-        # Convert price data back to DataFrame
+        # Convert price data back to DataFrame with proper datetime index
         for symbol in data:
             if data[symbol]['price_data']:
-                data[symbol]['price_data'] = pd.DataFrame(data[symbol]['price_data'])
+                df = pd.DataFrame(data[symbol]['price_data'])
+                # Convert string dates back to datetime index
+                try:
+                    df.index = pd.to_datetime(df.index)
+                except Exception:
+                    pass  # Keep original index if conversion fails
+                data[symbol]['price_data'] = df
         
         return data
     

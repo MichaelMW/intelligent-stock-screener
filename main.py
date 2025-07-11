@@ -30,6 +30,8 @@ def main():
     parser.add_argument('--sp500', action='store_true', help='Use S&P 500 universe')
     parser.add_argument('--data-file', default='stock_data.json', help='Data file to use')
     parser.add_argument('--output-dir', default='data', help='Output directory')
+    parser.add_argument('--fetch-mode', choices=['batch', 'incremental'], default='batch',
+                       help='Data fetch mode: batch (default, save all at once) or incremental (save per symbol)')
     
     args = parser.parse_args()
     
@@ -58,15 +60,21 @@ def main():
             symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'META', 'NVDA', 'JPM', 'JNJ', 'WMT']
             print(f"Using default test symbols: {symbols}")
         
-        # Fetch data
-        print(f"Fetching data for {len(symbols)} symbols...")
-        data = fetcher.fetch_batch_data(symbols, args.period)
+        # Fetch data based on selected mode
+        use_incremental = args.fetch_mode == 'incremental'
+        print(f"Fetching data for {len(symbols)} symbols using {args.fetch_mode} mode...")
+        data = fetcher.fetch_batch_data(symbols, args.period, save_incrementally=use_incremental)
         
         if data:
-            # Save data
-            fetcher.save_data(data, args.data_file)
-            fetcher.export_fundamentals_csv(data, 'fundamentals.csv')
-            print(f"Data saved to {args.data_file}")
+            if use_incremental:
+                # Export fundamentals CSV (data is already saved incrementally)
+                fetcher.export_fundamentals_csv(data, 'fundamentals.csv')
+                print(f"Data fetching complete! All symbols saved incrementally to {args.data_file}")
+            else:
+                # Save data in batch mode (traditional behavior)
+                fetcher.save_data(data, args.data_file)
+                fetcher.export_fundamentals_csv(data, 'fundamentals.csv')
+                print(f"Data saved to {args.data_file}")
         else:
             print("No data fetched")
             return
