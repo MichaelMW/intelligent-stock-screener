@@ -1,0 +1,138 @@
+{
+  "value_stocks": {
+    "description": "Value stocks with low P/E and P/B ratios",
+    "filters": [
+      {"field": "pe_ratio", "operator": "lt", "value": 20},
+      {"field": "pb_ratio", "operator": "lt", "value": 3},
+      {"field": "market_cap", "operator": "gt", "value": 1000000000},
+      {"field": "pe_ratio", "operator": "notnull"},
+      {"field": "pb_ratio", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "pe_ratio", "weight": 2.0, "direction": "lower"},
+      {"field": "pb_ratio", "weight": 1.5, "direction": "lower"},
+      {"field": "roe", "weight": 1.0, "direction": "higher"},
+      {"field": "dividend_yield", "weight": 0.5, "direction": "higher"}
+    ],
+    "top_n": 20
+  },
+  "growth_stocks": {
+    "description": "Growth stocks with strong earnings and revenue growth",
+    "filters": [
+      {"field": "revenue_growth", "operator": "gt", "value": 0.1},
+      {"field": "earnings_growth", "operator": "gt", "value": 0.15},
+      {"field": "market_cap", "operator": "gt", "value": 1000000000},
+      {"field": "pe_ratio", "operator": "lt", "value": 50}
+    ],
+    "ranking": [
+      {"field": "revenue_growth", "weight": 2.0, "direction": "higher"},
+      {"field": "earnings_growth", "weight": 2.0, "direction": "higher"},
+      {"field": "profit_margin", "weight": 1.0, "direction": "higher"},
+      {"field": "roe", "weight": 1.0, "direction": "higher"}
+    ],
+    "top_n": 20
+  },
+  "quality_stocks": {
+    "description": "High-quality stocks with strong fundamentals",
+    "filters": [
+      {"field": "roe", "operator": "gt", "value": 0.10},
+      {"field": "debt_to_equity", "operator": "lt", "value": 1.0},
+      {"field": "current_ratio", "operator": "gt", "value": 0.8},
+      {"field": "profit_margin", "operator": "gt", "value": 0.05},
+      {"field": "market_cap", "operator": "gt", "value": 1000000000}
+    ],
+    "ranking": [
+      {"field": "roe", "weight": 2.0, "direction": "higher"},
+      {"field": "profit_margin", "weight": 1.5, "direction": "higher"},
+      {"field": "current_ratio", "weight": 1.0, "direction": "higher"},
+      {"field": "debt_to_equity", "weight": 1.0, "direction": "lower"}
+    ],
+    "top_n": 20
+  },
+  "momentum_stocks": {
+    "description": "Stocks with strong recent performance",
+    "filters": [
+      {"field": "return_3m", "operator": "gt", "value": 5},
+      {"field": "return_1m", "operator": "gt", "value": 0},
+      {"field": "market_cap", "operator": "gt", "value": 1000000000}
+    ],
+    "ranking": [
+      {"field": "return_3m", "weight": 2.0, "direction": "higher"},
+      {"field": "return_1m", "weight": 1.5, "direction": "higher"},
+      {"field": "volume", "weight": 0.5, "direction": "higher"}
+    ],
+    "top_n": 20
+  },
+  "long_term_momentum": {
+    "description": "Stocks with consistent long-term momentum",
+    "filters": [
+      {"field": "return_1y", "operator": "gt", "value": 10},
+      {"field": "return_3y", "operator": "gt", "value": 15},
+      {"field": "return_6m", "operator": "gt", "value": 5},
+      {"field": "market_cap", "operator": "gt", "value": 1000000000}
+    ],
+    "ranking": [
+      {"field": "return_3y", "weight": 2.5, "direction": "higher"},
+      {"field": "return_1y", "weight": 2.0, "direction": "higher"},
+      {"field": "return_6m", "weight": 1.0, "direction": "higher"},
+      {"field": "volatility", "weight": 0.5, "direction": "lower"}
+    ],
+    "top_n": 20
+  },
+  "consistent_performers": {
+    "description": "Stocks with consistent performance across multiple time horizons",
+    "filters": [
+      {"field": "return_1y", "operator": "gt", "value": 8},
+      {"field": "return_3m", "operator": "gt", "value": 2},
+      {"field": "roe", "operator": "gt", "value": 0.08},
+      {"field": "market_cap", "operator": "gt", "value": 5000000000}
+    ],
+    "ranking": [
+      {"field": "return_1y", "weight": 1.5, "direction": "higher"},
+      {"field": "roe", "weight": 1.5, "direction": "higher"},
+      {"field": "return_3m", "weight": 1.0, "direction": "higher"},
+      {"field": "volatility", "weight": 1.0, "direction": "lower"},
+      {"field": "profit_margin", "weight": 0.5, "direction": "higher"}
+    ],
+    "top_n": 20
+  },
+  "low_volatility_growth": {
+    "description": "Growth stocks with lower volatility (risk-adjusted growth)",
+    "filters": [
+      {"field": "revenue_growth", "operator": "gt", "value": 0.08},
+      {"field": "return_1y", "operator": "gt", "value": 5},
+      {"field": "volatility", "operator": "lt", "value": 35},
+      {"field": "market_cap", "operator": "gt", "value": 2000000000}
+    ],
+    "ranking": [
+      {"field": "revenue_growth", "weight": 2.0, "direction": "higher"},
+      {"field": "return_1y", "weight": 1.5, "direction": "higher"},
+      {"field": "volatility", "weight": 1.5, "direction": "lower"},
+      {"field": "roe", "weight": 1.0, "direction": "higher"},
+      {"field": "current_ratio", "weight": 0.5, "direction": "higher"}
+    ],
+    "top_n": 20
+  },
+  "quality_dividend": {
+    "description": "Quality dividend stocks with sustainable yields and inflation-beating growth",
+    "filters": [
+      {"field": "dividend_yield", "operator": "gt", "value": 3},
+      {"field": "dividend_yield", "operator": "lt", "value": 20.0},
+      {"field": "revenue_growth", "operator": "gt", "value": 0.02},
+      {"field": "roe", "operator": "gt", "value": 0.10},
+      {"field": "current_ratio", "operator": "gt", "value": 0.8},
+      {"field": "pe_ratio", "operator": "lt", "value": 50},
+      {"field": "market_cap", "operator": "gt", "value": 1000000000},
+      {"field": "dividend_yield", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "dividend_yield", "weight": 2.0, "direction": "higher"},
+      {"field": "roe", "weight": 1.8, "direction": "higher"},
+      {"field": "revenue_growth", "weight": 1.5, "direction": "higher"},
+      {"field": "profit_margin", "weight": 1.2, "direction": "higher"},
+      {"field": "current_ratio", "weight": 0.8, "direction": "higher"},
+      {"field": "pe_ratio", "weight": 0.5, "direction": "lower"}
+    ],
+    "top_n": 20
+  }
+}

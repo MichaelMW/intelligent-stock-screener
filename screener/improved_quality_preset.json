@@ -1,0 +1,55 @@
+{
+  "quality_stocks_relaxed": {
+    "description": "High-quality stocks with relaxed but meaningful criteria",
+    "filters": [
+      {
+        "field": "roe",
+        "operator": "gt",
+        "value": 0.1
+      },
+      {
+        "field": "debt_to_equity",
+        "operator": "lt",
+        "value": 1.0
+      },
+      {
+        "field": "current_ratio",
+        "operator": "gt",
+        "value": 0.8
+      },
+      {
+        "field": "profit_margin",
+        "operator": "gt",
+        "value": 0.05
+      },
+      {
+        "field": "market_cap",
+        "operator": "gt",
+        "value": 1000000000
+      }
+    ],
+    "ranking": [
+      {
+        "field": "roe",
+        "weight": 2.0,
+        "direction": "higher"
+      },
+      {
+        "field": "profit_margin",
+        "weight": 1.5,
+        "direction": "higher"
+      },
+      {
+        "field": "current_ratio",
+        "weight": 1.0,
+        "direction": "higher"
+      },
+      {
+        "field": "debt_to_equity",
+        "weight": 1.0,
+        "direction": "lower"
+      }
+    ],
+    "top_n": 20
+  }
+}
