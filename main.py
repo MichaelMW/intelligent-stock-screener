@@ -111,26 +111,104 @@ def main():
         # Print results
         screener.print_analysis_results(analysis_results)
         
-        # Save detailed results
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        # Create analysis directory with date
+        analysis_date = datetime.now().strftime('%Y-%m-%d')
+        analysis_dir = os.path.join('analysis', analysis_date)
+        os.makedirs(analysis_dir, exist_ok=True)
         
-        # Save preset results individually
-        for preset_name, preset_data in analysis_results['preset_results'].items():
-            if preset_data['count'] > 0:
-                output_file = f"analysis_results_{preset_name}_{timestamp}.tsv"
-                # Use the existing export method for each preset
-                screener.screened_stocks = preset_data['results']
-                screener.export_results(output_file, "tsv")
+        # Save analysis summary text file
+        summary_file = os.path.join(analysis_dir, 'analysis_summary.txt')
+        with open(summary_file, 'w') as f:
+            f.write("=== STOCK SCREENING OVERLAP ANALYSIS SUMMARY ===\n")
+            f.write(f"Analysis date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            
+            preset_names = list(analysis_results['preset_results'].keys())
+            f.write(f"Presets analyzed: {', '.join(preset_names)}\n")
+            f.write(f"Total unique stocks across all presets: {analysis_results.get('total_unique_stocks', 0)}\n")
+            
+            # Count stocks appearing in 2+ presets
+            overlap_groups = analysis_results.get('overlap_groups', {})
+            overlap_count = sum(len(symbols) for count, symbols in overlap_groups.items() if count >= 2)
+            f.write(f"Stocks appearing in 2+ presets: {overlap_count}\n\n")
+            
+            if overlap_count > 0:
+                max_overlap = max(count for count in overlap_groups.keys() if count >= 2) if overlap_groups else 0
+                f.write(f"Maximum preset overlap: {max_overlap}\n\n")
+                
+                f.write("=== TOP 10 CANDIDATES (by preset count and avg score) ===\n")
+                # Create overlap stock list for summary
+                all_overlap_stocks = []
+                for count in sorted(overlap_groups.keys(), reverse=True):
+                    if count >= 2:
+                        for symbol in overlap_groups[count]:
+                            # Get stock data from any preset it appears in
+                            for preset_data in analysis_results['preset_results'].values():
+                                if symbol in preset_data['symbols']:
+                                    stock_results = preset_data['results']
+                                    stock_info = next((s for s in stock_results if s['symbol'] == symbol), None)
+                                    if stock_info:
+                                        all_overlap_stocks.append({
+                                            'symbol': symbol,
+                                            'preset_count': count,
+                                            'sector': stock_info.get('sector', 'N/A')
+                                        })
+                                        break
+                
+                for stock in all_overlap_stocks[:10]:
+                    f.write(f"{stock['symbol']:<6} - {stock['preset_count']} presets, "
+                           f"avg score: N/A, "
+                           f"sector: {stock.get('sector', 'N/A')}\n")
         
-        # Save overlap analysis
-        overlap_file = f"analysis_overlaps_{timestamp}.json"
-        import json
-        with open(os.path.join(args.output_dir, overlap_file), 'w') as f:
-            json.dump(analysis_results, f, indent=2, default=str)
+        # Save overlap analysis TSV file
+        overlap_file = os.path.join(analysis_dir, 'overlap_analysis.tsv')
         
-        print(f"\n💾 Analysis results saved to {args.output_dir}")
-        print(f"   - Individual preset results: analysis_results_[preset]_{timestamp}.tsv")
-        print(f"   - Overlap analysis: {overlap_file}")
+        # Create overlap data in the format expected by export_overlap_analysis
+        overlap_data = []
+        overlap_groups = analysis_results.get('overlap_groups', {})
+        preset_results = analysis_results.get('preset_results', {})
+        
+        for count in sorted(overlap_groups.keys(), reverse=True):
+            if count >= 2:  # Only include stocks in 2+ presets
+                for symbol in overlap_groups[count]:
+                    stock_data = {'symbol': symbol, 'preset_count': count, 'presets': []}
+                    
+                    # Find which presets this symbol appears in and collect scores/ranks
+                    for preset_name, preset_data in preset_results.items():
+                        if symbol in preset_data['symbols']:
+                            stock_data['presets'].append(preset_name)
+                            # Get stock details from results
+                            stock_results = preset_data['results']
+                            stock_info = next((s for s in stock_results if s['symbol'] == symbol), None)
+                            if stock_info:
+                                # Add preset-specific score and rank
+                                rank = preset_data['symbols'].index(symbol) + 1
+                                stock_data[f'{preset_name}_score'] = stock_info.get('screening_score', 0)
+                                stock_data[f'{preset_name}_rank'] = rank
+                                
+                                # Copy fundamental data (only need to do this once)
+                                if 'sector' not in stock_data:
+                                    for field in ['pe_ratio', 'pb_ratio', 'roe', 'market_cap', 'sector',
+                                                'return_1m', 'return_3m', 'return_6m', 'return_1y', 'return_3y', 'return_5y',
+                                                'revenue_growth', 'earnings_growth', 'profit_margin', 'dividend_yield',
+                                                'volatility', 'beta', 'current_ratio', 'debt_to_equity']:
+                                        stock_data[field] = stock_info.get(field, '')
+                    
+                    # Calculate average score and rank
+                    scores = [v for k, v in stock_data.items() if k.endswith('_score') and isinstance(v, (int, float))]
+                    ranks = [v for k, v in stock_data.items() if k.endswith('_rank') and isinstance(v, (int, float))]
+                    
+                    stock_data['avg_score'] = sum(scores) / len(scores) if scores else 0
+                    stock_data['avg_rank'] = sum(ranks) / len(ranks) if ranks else 0
+                    stock_data['best_rank'] = min(ranks) if ranks else 0
+                    
+                    overlap_data.append(stock_data)
+        
+        if overlap_data:
+            screener.export_overlap_analysis(overlap_data, overlap_file)
+        
+        print(f"\n💾 Analysis results saved to {analysis_dir}/")
+        print(f"   - Summary: analysis_summary.txt")
+        print(f"   - Overlap details: overlap_analysis.tsv")
         
         return
     

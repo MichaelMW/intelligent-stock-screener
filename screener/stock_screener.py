@@ -490,6 +490,78 @@ class StockScreener:
         
         print("-" * 120)
 
+    def export_overlap_analysis(self, overlap_data: List[Dict], filename: str):
+        """Export overlap analysis to TSV file matching the original format"""
+        if not overlap_data:
+            print("No overlap data to export")
+            return
+        
+        try:
+            with open(filename, 'w') as f:
+                # Write header
+                header_fields = ['symbol', 'preset_count', 'presets']
+                
+                # Add score/rank columns for each preset
+                if overlap_data:
+                    first_stock = overlap_data[0]
+                    presets = []
+                    for key in first_stock.keys():
+                        if key.endswith('_score') and not key.startswith('avg_'):
+                            preset_name = key.replace('_score', '')
+                            presets.append(preset_name)
+                    
+                    for preset in presets:
+                        header_fields.extend([f'{preset}_score', f'{preset}_rank'])
+                
+                # Add summary fields
+                header_fields.extend(['avg_score', 'avg_rank', 'best_rank'])
+                
+                # Add fundamental fields
+                fundamental_fields = ['pe_ratio', 'pb_ratio', 'roe', 'market_cap', 'sector', 
+                                    'return_1m', 'return_3m', 'return_6m', 'return_1y', 'return_3y', 'return_5y',
+                                    'revenue_growth', 'earnings_growth', 'profit_margin', 'dividend_yield',
+                                    'volatility', 'beta', 'current_ratio', 'debt_to_equity']
+                header_fields.extend(fundamental_fields)
+                
+                f.write('\t'.join(header_fields) + '\n')
+                
+                # Write data rows
+                for stock in overlap_data:
+                    if stock.get('preset_count', 0) >= 2:  # Only include stocks in 2+ presets
+                        row_data = []
+                        
+                        # Basic fields
+                        row_data.append(str(stock.get('symbol', '')))
+                        row_data.append(str(stock.get('preset_count', 0)))
+                        row_data.append('; '.join(stock.get('presets', [])))
+                        
+                        # Score/rank fields for each preset
+                        for preset in presets:
+                            score_key = f'{preset}_score'
+                            rank_key = f'{preset}_rank'
+                            row_data.append(str(stock.get(score_key, '')))
+                            row_data.append(str(stock.get(rank_key, '')))
+                        
+                        # Summary fields
+                        row_data.append(str(stock.get('avg_score', '')))
+                        row_data.append(str(stock.get('avg_rank', '')))
+                        row_data.append(str(stock.get('best_rank', '')))
+                        
+                        # Fundamental fields
+                        for field in fundamental_fields:
+                            value = stock.get(field, '')
+                            if value == '' or value is None:
+                                row_data.append('')
+                            else:
+                                row_data.append(str(value))
+                        
+                        f.write('\t'.join(row_data) + '\n')
+            
+            print(f"Overlap analysis exported to: {filename}")
+            
+        except Exception as e:
+            print(f"Error exporting overlap analysis: {e}")
+
 if __name__ == "__main__":
     # Test the screener
     screener = StockScreener()
