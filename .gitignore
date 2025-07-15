@@ -9,10 +9,10 @@ __pycache__/
 
 # Data files (CSV, JSON, database files)
 data/
-*.csv
-*.json
-*.db
-*.db-journal
+data/*.csv
+data/*.json
+data/*.db
+data/*.db-journal
 
 # Project results
 projects/

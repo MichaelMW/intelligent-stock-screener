@@ -1,0 +1,116 @@
+{
+  "bluechip": {
+    "description": "Blue chip stocks - large cap companies with strong 10-year track record and reasonable valuations",
+    "filters": [
+      {"field": "market_cap", "operator": "gt", "value": 500000000},
+      {"field": "return_10y", "operator": "gt", "value": 100},
+      {"field": "pe_ratio", "operator": "lte", "value": 50},
+      {"field": "return_10y", "operator": "notnull"},
+      {"field": "pe_ratio", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "return_10y", "weight": 3.0, "direction": "higher"}
+    ],
+    "top_n": 999
+  },
+  "quality_grower": {
+    "description": "Quality growth stocks - consistent multi-year growth performance",
+    "filters": [
+      {"field": "return_5y", "operator": "gt", "value": 50},
+      {"field": "return_3y", "operator": "gt", "value": 30},
+      {"field": "return_1y", "operator": "gt", "value": 10},
+      {"field": "return_5y", "operator": "notnull"},
+      {"field": "return_3y", "operator": "notnull"},
+      {"field": "return_1y", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "return_5y", "weight": 3.0, "direction": "higher"}
+    ],
+    "top_n": 999
+  },
+  "dividend": {
+    "description": "High dividend stocks - attractive yield with solid long-term performance",
+    "filters": [
+      {"field": "market_cap", "operator": "gt", "value": 10000000},
+      {"field": "dividend_yield", "operator": "gt", "value": 3},
+      {"field": "return_5y", "operator": "gte", "value": 30},
+      {"field": "dividend_yield", "operator": "notnull"},
+      {"field": "return_5y", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "dividend_yield", "weight": 3.0, "direction": "higher"}
+    ],
+    "top_n": 999
+  },
+  "great_balance": {
+    "description": "Strong balance sheet - low debt, good liquidity ratios, large cap with solid returns",
+    "filters": [
+      {"field": "debt_to_equity", "operator": "lte", "value": 80},
+      {"field": "current_ratio", "operator": "gt", "value": 1.2},
+      {"field": "quick_ratio", "operator": "gt", "value": 0.8},
+      {"field": "market_cap", "operator": "gte", "value": 1000000000},
+      {"field": "return_5y", "operator": "gte", "value": 30},
+      {"field": "debt_to_equity", "operator": "notnull"},
+      {"field": "current_ratio", "operator": "notnull"},
+      {"field": "quick_ratio", "operator": "notnull"},
+      {"field": "return_5y", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "return_5y", "weight": 3.0, "direction": "higher"}
+    ],
+    "top_n": 999
+  },
+  "momentum": {
+    "description": "Momentum stocks - strong recent performance in 1-month and 3-month periods",
+    "filters": [
+      {"field": "return_1m", "operator": "gte", "value": 5},
+      {"field": "return_3m", "operator": "gte", "value": 10},
+      {"field": "market_cap", "operator": "gte", "value": 100000000},
+      {"field": "return_1m", "operator": "notnull"},
+      {"field": "return_3m", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "return_1m", "weight": 3.0, "direction": "higher"}
+    ],
+    "top_n": 999
+  },
+  "value_timed": {
+    "description": "Value timing - strong long-term performers with recent weakness for entry opportunity",
+    "filters": [
+      {"field": "return_5y", "operator": "gt", "value": 50},
+      {"field": "return_3y", "operator": "gt", "value": 30},
+      {"field": "return_3m", "operator": "lt", "value": 0},
+      {"field": "pe_ratio", "operator": "lt", "value": 20},
+      {"field": "return_5y", "operator": "notnull"},
+      {"field": "return_3y", "operator": "notnull"},
+      {"field": "return_3m", "operator": "notnull"},
+      {"field": "pe_ratio", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "return_5y", "weight": 3.0, "direction": "higher"}
+    ],
+    "top_n": 999
+  },
+  "my_value_quality": {
+    "description": "Value quality stocks - reasonable valuation, dividend income, strong long-term returns with recent dip",
+    "filters": [
+      {"field": "pe_ratio", "operator": "lte", "value": 20},
+      {"field": "dividend_yield", "operator": "gte", "value": 3},
+      {"field": "return_5y", "operator": "gte", "value": 50},
+      {"field": "return_10y", "operator": "gte", "value": 100},
+      {"field": "return_1y", "operator": "gte", "value": 0},
+      {"field": "return_1m", "operator": "lte", "value": 0},
+      {"field": "market_cap", "operator": "gte", "value": 100000000},
+      {"field": "pe_ratio", "operator": "notnull"},
+      {"field": "dividend_yield", "operator": "notnull"},
+      {"field": "return_5y", "operator": "notnull"},
+      {"field": "return_10y", "operator": "notnull"},
+      {"field": "return_1y", "operator": "notnull"},
+      {"field": "return_1m", "operator": "notnull"}
+    ],
+    "ranking": [
+      {"field": "return_10y", "weight": 3.0, "direction": "higher"}
+    ],
+    "top_n": 999
+  }
+}
