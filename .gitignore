@@ -1,3 +1,6 @@
+# Hidden
+.*
+
 # Python
 *.pyc
 *.pyo
