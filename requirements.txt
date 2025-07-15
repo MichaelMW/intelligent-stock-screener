@@ -1,0 +1,4 @@
+pandas>=1.0.0
+numpy>=1.18.0
+yfinance>=0.2.0
+lxml>=4.6.0
